@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17131f"/><stop offset="1" stop-color="#7b3b4d"/></linearGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/><circle cx="970" cy="110" r="180" fill="#ffb08d" opacity=".15"/><circle cx="180" cy="570" r="230" fill="#ff6d6d" opacity=".12"/>
+  <text x="100" y="190" fill="#ffb08d" font-family="monospace" font-size="24" letter-spacing="5">A VERY IMPORTANT QUESTION</text>
+  <text x="100" y="315" fill="#f5efe9" font-family="Georgia, serif" font-size="72">I have a question</text>
+  <text x="100" y="405" fill="#ff6d6d" font-family="Georgia, serif" font-size="72" font-style="italic">for you... ❤️</text>
+  <text x="100" y="520" fill="#a9a0a7" font-family="monospace" font-size="20">a tiny invitation, with excellent intentions ✦</text>
+</svg>

@@ -22,11 +22,11 @@ Set SMTP credentials in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PAS
 
 ## Photos
 
-The included local portrait is loaded from `/20251205_233546.jpg`. Replace that file, or update the image source in `src/main.jsx`. The gallery is intentionally small and easy to customize.
+The romantic gallery is configured near the top of `src/main.jsx` in the `images` array. Replace those royalty-free image URLs with your own hosted images when needed. Images use lazy loading and captions are stored beside each URL.
 
 ## Customize
 
-Edit the `noLines`, `noLabels`, and `vibes` arrays in `src/main.jsx` to change messages and date ideas. The main colors, typography, spacing, and responsive rules live in `src/styles.css` as CSS variables. The app uses date input `min` validation so only future dates are accepted.
+Edit the `noMessages`, `noLabels`, `vibes`, and `moods` arrays in `src/main.jsx` to change messages and date ideas. The main colors, typography, spacing, and responsive rules live in `src/styles.css` as CSS variables. The app uses date input `min` validation so only future dates are accepted.
 
 ## Deploy
 
