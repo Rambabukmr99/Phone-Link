@@ -18,7 +18,7 @@ Create a Meta WhatsApp Business app, create a permanent access token, and set `W
 
 ## Email
 
-Set SMTP credentials in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) plus `NOTIFICATION_EMAIL`. The template uses `javadeveloper765497@gmail.com` as the sender and `ramcomp3099@mail.com` as your recipient. Her consented email, entered during booking, is added as the second recipient. Gmail requires an app password; never put the account password in GitHub or the frontend. Any SMTP provider can be used.
+The static GitHub Pages version uses FormSubmit for email, so no backend is needed for email. It sends the full card to `ramcomp3099@mail.com` and CCs her consented email. On the first submission, FormSubmit sends an activation email to `ramcomp3099@mail.com`; click that activation link once. The sender address is managed by FormSubmit rather than your Gmail account. For private SMTP delivery from `javadeveloper765497@gmail.com`, deploy `server.js` instead and configure the SMTP variables below. Never put an account password in GitHub or the frontend.
 
 ## Photos
 
