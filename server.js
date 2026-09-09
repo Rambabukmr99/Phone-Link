@@ -7,13 +7,28 @@ import pg from 'pg';
 const app = express();
 const port = process.env.PORT || 8787;
 const submissions = new Map();
-const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false } }) : null;
+const rawDatabaseUrl = process.env.DATABASE_URL?.trim();
+let pool = null;
+let databaseConfigError = '';
+
+if (rawDatabaseUrl) {
+  try {
+    const databaseUrl = new URL(rawDatabaseUrl);
+    const sslMode = databaseUrl.searchParams.get('sslmode');
+    if (sslMode === 'require' || sslMode === 'prefer' || sslMode === 'verify-ca') databaseUrl.searchParams.set('sslmode', 'verify-full');
+    if (!databaseUrl.hostname || databaseUrl.hostname === 'base') throw new Error('DATABASE_URL contains an invalid database hostname. Copy the complete Neon connection string from Connect.');
+    pool = new pg.Pool({ connectionString: databaseUrl.toString(), ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false } });
+  } catch (error) {
+    databaseConfigError = error.message;
+    console.error('Database configuration failed:', databaseConfigError);
+  }
+}
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: '10kb' }));
 
 app.get('/health', async (_req, res) => {
-  if (!pool) return res.status(503).json({ ok: false, service: 'date-invitation-api', database: 'not configured' });
+  if (!pool) return res.status(503).json({ ok: false, service: 'date-invitation-api', database: databaseConfigError || 'not configured' });
   try {
     await databaseReady;
     await pool.query('SELECT 1');
