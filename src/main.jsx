@@ -31,8 +31,9 @@ function App() {
   const [noCount, setNoCount] = useState(0);
   const [modal, setModal] = useState(false);
   const [secret, setSecret] = useState(false);
+  const [secretTimerKey, setSecretTimerKey] = useState(0);
   const [compatibility, setCompatibility] = useState(0);
-  const [details, setDetails] = useState({ date: '', time: '', location: '', vibes: [], mood: '', message: '' });
+  const [details, setDetails] = useState({ date: '', time: '', location: '', vibes: [], mood: '', message: '', herEmail: '', herPhone: '', consent: false });
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -43,6 +44,11 @@ function App() {
     const timer = setTimeout(() => setIntroLine((line) => line + 1), 1200);
     return () => clearTimeout(timer);
   }, [step, introLine]);
+  useEffect(() => {
+    if (!secretTimerKey) return undefined;
+    const timer = setTimeout(() => setSecret(false), 1000);
+    return () => clearTimeout(timer);
+  }, [secretTimerKey]);
 
   const update = (key, value) => setDetails((current) => ({ ...current, [key]: value }));
   const yes = () => {
@@ -65,20 +71,21 @@ function App() {
     } catch { setSubmitError('I could not send the confirmation yet. Please try again.'); } finally { setSubmitting(false); }
   };
   const next = (nextStep, key) => details[key] && setStep(nextStep);
+  const openSecret = () => { setSecret(true); setSecretTimerKey(Date.now()); };
 
   if (step === 'intro') return <Intro skip={() => setStep('hero')} line={introLine} />;
   return <main className="app-shell">
     <div className="grain" aria-hidden="true" />
     <div className="ambient-symbols" aria-hidden="true"><span>✦</span><span>♡</span><span>✧</span><span>·</span><span>♡</span></div>
-    <header className="topbar"><button className="brand" onClick={() => setSecret(true)} aria-label="Open secret heart">♡</button><span>date.exe · a very important question</span><span className="step-count">{step === 'hero' ? '01' : '02'} / 07</span></header>
-    {step === 'hero' && <Hero yes={yes} no={no} noCount={noCount} setSecret={() => setSecret(true)} />}
+    <header className="topbar"><button className="brand" onClick={openSecret} aria-label="Open secret heart">♡</button><span>date.exe · a very important question</span><span className="step-count">{step === 'hero' ? '01' : '02'} / 07</span></header>
+    {step === 'hero' && <Hero yes={yes} no={no} noCount={noCount} setSecret={openSecret} />}
     {step === 'celebrate' && <Celebration compatibility={compatibility} continuePlanning={() => setStep('date')} />}
     {step === 'date' && <Planner eyebrow="chapter one · the day" title="When should we make this official? ❤️" copy="Pick a day that works for you. Choose wisely... this could be the beginning of a very good story. 👀"><label className="field-label" htmlFor="date">Your excellent choice</label><input className="input" id="date" type="date" min={minDate} value={details.date} onChange={(event) => update('date', event.target.value)} /><p className="success-copy">{details.date && 'Perfect choice. 😌'}</p><Next disabled={!details.date} onClick={() => next('time', 'date')} text="Next → time ⏰" /></Planner>}
     {step === 'time' && <Planner eyebrow="chapter two · the hour" title="What time should our adventure begin?" copy="Excellent. I’ll try very hard not to be late. 😂"><label className="field-label">Pick a mood for the clock</label><div className="option-grid four">{[['☀️', '09:00', 'Morning'], ['🌤️', '13:00', 'Afternoon'], ['🌇', '18:00', 'Evening'], ['🌙', '20:00', 'Night']].map(([icon, value, label]) => <button className={`option ${details.time === value ? 'selected' : ''}`} key={value} onClick={() => update('time', value)}><span>{icon}</span>{label}</button>)}</div><label className="field-label time-label" htmlFor="time">Or choose the exact time</label><input className="input" id="time" type="time" value={details.time} onChange={(event) => update('time', event.target.value)} /><Next disabled={!details.time} onClick={() => next('location', 'time')} text="Next → location 📍" /></Planner>}
     {step === 'location' && <Planner eyebrow="chapter three · the scene" title="Where should we meet? 📍" copy="Pick somewhere we can pretend we know what we’re doing. 😂"><div className="option-grid location-grid">{[['☕', 'Café'], ['🍕', 'Restaurant'], ['🌳', 'Park'], ['🎬', 'Cinema'], ['🛍️', 'Mall'], ['🌆', 'Somewhere scenic']].map(([icon, label]) => <button className={`option ${details.location === label ? 'selected' : ''}`} key={label} onClick={() => update('location', label)}><span>{icon}</span>{label}</button>)}</div><label className="field-label time-label" htmlFor="location">Or enter a custom location</label><input className="input" id="location" placeholder="A place with good potential..." value={details.location} onChange={(event) => update('location', event.target.value)} /><Next disabled={!details.location} onClick={() => next('vibe', 'location')} text="Next → our vibe ✨" /></Planner>}
     {step === 'vibe' && <Planner eyebrow="chapter four · the plot" title="Choose our vibe. 👀" copy="Multiple answers are allowed, because range is attractive."><div className="vibe-grid">{vibes.map((vibe, index) => <button className={`vibe-card ${details.vibes.includes(vibe) ? 'selected' : ''}`} key={vibe} onClick={() => toggleVibe(vibe)}><span>{vibeIcons[index]}</span>{vibe}</button>)}</div><Next disabled={!details.vibes.length} onClick={() => next('mood', 'vibes')} text="Next → the mood" /></Planner>}
     {step === 'mood' && <Planner eyebrow="chapter five · the atmosphere" title="What’s the mood?" copy="This information will be used for absolutely scientific purposes. 😌"><div className="mood-grid">{moods.map((mood, index) => <button className={`mood-card ${details.mood === mood ? 'selected' : ''}`} key={mood} onClick={() => update('mood', mood)}><span>{['😌', '😂', '❤️', '✨', '🤪', '☕'][index]}</span>{mood}</button>)}</div><Next disabled={!details.mood} onClick={() => next('message', 'mood')} text="Next → one last thought" /></Planner>}
-    {step === 'message' && <Planner eyebrow="chapter six · a tiny note" title="Anything you want me to know?" copy="Optional, but a good note can increase date potential by at least 37%."><label className="field-label" htmlFor="message">A message for the planner</label><textarea className="input textarea" id="message" maxLength="200" placeholder="e.g. I’m hungry, surprise me, don’t be late 😂" value={details.message} onChange={(event) => update('message', event.target.value)} /><p className="character-count">{details.message.length} / 200</p><Next onClick={() => setStep('confirm')} text="Review our date →" /></Planner>}
+    {step === 'message' && <Planner eyebrow="chapter six · a tiny note" title="Anything you want me to know?" copy="Optional, but a good note can increase date potential by at least 37%."><label className="field-label" htmlFor="message">A message for the planner</label><textarea className="input textarea" id="message" maxLength="200" placeholder="e.g. I’m hungry, surprise me, don’t be late 😂" value={details.message} onChange={(event) => update('message', event.target.value)} /><p className="character-count">{details.message.length} / 200</p><div className="contact-box"><p className="field-label">Send the date card to you too</p><input className="input" type="email" placeholder="Your email address" value={details.herEmail} onChange={(event) => update('herEmail', event.target.value)} /><input className="input contact-input" type="tel" inputMode="tel" placeholder="Your phone number with country code" value={details.herPhone} onChange={(event) => update('herPhone', event.target.value)} /><label className="consent"><input type="checkbox" checked={details.consent} onChange={(event) => update('consent', event.target.checked)} /> I agree to receive these date details.</label></div><Next disabled={!details.herEmail || !details.herPhone || !details.consent} onClick={() => setStep('confirm')} text="Review our date →" /></Planner>}
     {step === 'final' && <Final details={details} sent={sent} />}
       {step === 'balloons' && <BalloonCelebration />}
       {step === 'confirm' && <Planner eyebrow="final check · no funny business" title="Are we officially making this a date? ❤️" copy="Screenshot this. This is officially evidence. 😌❤️"><DateCard details={details} />{submitError && <p className="error-copy" role="alert">{submitError}</p>}<Next disabled={submitting} onClick={submit} text={submitting ? 'Sending confirmation...' : 'YES, CONFIRM IT ❤️'} /><button className="back-button" onClick={() => setStep('date')}>Wait, I want to change something</button></Planner>}
