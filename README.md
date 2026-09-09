@@ -30,6 +30,8 @@ Create a Meta WhatsApp Business app, create a permanent access token, and set `W
 
 Email and WhatsApp remain optional. The response is stored in PostgreSQL even when those notification providers are not configured. If you later enable SMTP or WhatsApp on Render, those credentials stay server-side.
 
+For a free email provider, use [Brevo](https://www.brevo.com): create a free account, verify `javadeveloper765497@gmail.com` under **Senders & IP**, create an API key under **SMTP & API**, and add `BREVO_API_KEY` to Render. Set `BREVO_FROM_EMAIL=javadeveloper765497@gmail.com`. Brevo's free plan supports daily email sending over HTTPS, avoiding the Render SMTP timeout. Both your configured email and her consented email receive the card.
+
 ## Photos
 
 The romantic gallery is configured near the top of `src/main.jsx` in the `images` array. Replace those royalty-free image URLs with your own hosted images when needed. Images use lazy loading and captions are stored beside each URL.
