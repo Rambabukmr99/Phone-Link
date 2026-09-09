@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
@@ -96,10 +96,16 @@ function BalloonCelebration() { const balloons = ['YES ❤️', 'DATE! 🎉', 'Y
 function Planner({ eyebrow, title, copy, children }) { return <section className="form-stage page-in"><div className="form-inner"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="subtitle">{copy}</p><div className="form-content">{children}</div></div><div className="side-note">calculating date potential...<br /><span>♥</span></div></section>; }
 function Next({ disabled, onClick, text }) { return <button className="button primary continue" disabled={disabled} onClick={onClick}>{text}</button>; }
 function NoModal({ count, close, yes, decline }) { const message = noMessages[Math.min(count - 1, noMessages.length - 1)]; return <div className="modal-backdrop"><div className="modal" role="dialog" aria-modal="true" aria-labelledby="no-title"><span className="modal-icon">{count >= 6 ? '🧠' : '🥺'}</span><h2 id="no-title">{message[0]}</h2><p>{message[1]}</p>{count >= 6 && <div className="reasons"><span>☕ Coffee</span><span>🍕 Good food</span><span>😂 Bad jokes</span><span>🌆 Nice evening</span><span>❤️ Great memories</span></div>}<div className="modal-actions"><button className="button primary" onClick={yes}>YES ❤️</button><button className="button secondary" onClick={count >= 6 ? decline : close}>{count >= 6 ? 'I’m REALLY sure 😭' : 'NO, I’m sure'}</button></div></div></div>; }
-function DateCard({ details }) { return <div className="date-card"><div className="card-kicker">♥ our date</div><h2>It’s looking good.</h2><div className="summary"><Summary label="DATE" value={formatDate(details.date)} /><Summary label="TIME" value={formatTime(details.time)} /><Summary label="LOCATION" value={details.location} /><Summary label="VIBE" value={details.vibes.join(' · ')} /><Summary label="MOOD" value={details.mood} />{details.message && <Summary label="NOTE" value={details.message} />}</div></div>; }
+function DateCard({ details }) { return <div className="date-card"><div className="card-kicker">♥ our date</div><h2>It’s looking good.</h2><div className="summary"><Summary label="DATE" value={formatDate(details.date)} /><Summary label="TIME" value={formatTime(details.time)} /><Summary label="LOCATION" value={details.location} /><Summary label="VIBE" value={(details.vibes || []).join(' · ')} /><Summary label="MOOD" value={details.mood} />{details.message && <Summary label="NOTE" value={details.message} />}</div></div>; }
 function Summary({ label, value }) { return <div><span>{label}</span><strong>{value}</strong></div>; }
 function Final({ details, sent }) { return <section className="center-stage final-stage page-in"><div className="confetti" aria-hidden="true">✦　♥　✧　♥　✦</div><p className="eyebrow">officially official</p><h1>It’s a date! <span>❤️🥳</span></h1><p className="subtitle">Okay... now I actually have to plan something good. 😂</p><DateCard details={details} /><p className="tiny-note">{sent ? 'The evidence has been sent. See you there. ✦' : 'Still officially a date. Notification delivery is catching up. ✦'}</p><button className="button secondary" onClick={() => window.print()}>Save our date ♥</button></section>; }
-+function formatDate(value) { return value ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date(`${value}T12:00:00`)) : 'Choose a date'; }
-+function formatTime(value) { return value ? new Intl.DateTimeFormat('en-US', { timeStyle: 'short' }).format(new Date(`2020-01-01T${value}`)) : 'Choose a time'; }
-+
-+createRoot(document.getElementById('root')).render(<App />);
+function formatDate(value) { return value ? new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(new Date(`${value}T12:00:00`)) : 'Choose a date'; }
+function formatTime(value) { return value ? new Intl.DateTimeFormat('en-US', { timeStyle: 'short' }).format(new Date(`2020-01-01T${value}`)) : 'Choose a time'; }
+
+class AppErrorBoundary extends Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() { return this.state.hasError ? <main className="error-screen"><h1>One tiny glitch. ❤️</h1><p>Please refresh and try the date planner again.</p><button className="button primary" onClick={() => window.location.reload()}>Refresh invitation</button></main> : this.props.children; }
+}
+
+createRoot(document.getElementById('root')).render(<AppErrorBoundary><App /></AppErrorBoundary>);
