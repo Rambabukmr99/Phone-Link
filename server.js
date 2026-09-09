@@ -88,6 +88,7 @@ app.post('/api/date-confirmation', async (req, res) => {
   submissions.set(ip, Date.now());
   const message = `❤️ DATE CONFIRMED ❤️\n\nSHE SAID YES! 🥳\n\nDate: ${details.date}\nTime: ${details.time}\nLocation: ${details.location}\nDate Type: ${details.dateType}\nMood: ${details.mood || 'Not specified'}\nMessage: ${details.note || 'No message'}\nStatus: CONFIRMED ❤️\nTimestamp: ${details.timestamp}`;
   res.json({ ok: true, stored: true });
+  if (process.env.ENABLE_NOTIFICATIONS !== 'true') return;
   let delivered = false;
 
   try {
