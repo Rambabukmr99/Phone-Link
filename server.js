@@ -2,13 +2,29 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
+import pg from 'pg';
 
 const app = express();
 const port = process.env.PORT || 8787;
 const submissions = new Map();
+const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false } }) : null;
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: '10kb' }));
+
+const databaseReady = pool?.query(`CREATE TABLE IF NOT EXISTS date_responses (
+  id BIGSERIAL PRIMARY KEY,
+  date_value DATE NOT NULL,
+  time_value VARCHAR(20) NOT NULL,
+  location VARCHAR(160) NOT NULL,
+  date_type VARCHAR(500) NOT NULL,
+  mood VARCHAR(60),
+  note VARCHAR(200),
+  guest_email VARCHAR(200) NOT NULL,
+  guest_phone VARCHAR(30) NOT NULL,
+  consent BOOLEAN NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`).catch((error) => console.error('Database initialization failed:', error.message));
 
 const clean = (value, max = 160) => String(value ?? '').replace(/[<>]/g, '').trim().slice(0, max);
 const email = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean(value, 200));
@@ -33,6 +49,14 @@ app.post('/api/date-confirmation', async (req, res) => {
     herPhone: clean(req.body.herPhone, 30),
     timestamp: new Date().toISOString()
   };
+  if (!pool) return res.status(503).json({ ok: false, message: 'Response storage is not configured yet.' });
+  try {
+    await databaseReady;
+    await pool.query('INSERT INTO date_responses (date_value, time_value, location, date_type, mood, note, guest_email, guest_phone, consent) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [details.date, details.time, details.location, details.dateType, details.mood || null, details.note || null, details.herEmail, details.herPhone, req.body.consent]);
+  } catch (error) {
+    console.error('Response storage failed:', error.message);
+    return res.status(503).json({ ok: false, message: 'Response storage is temporarily unavailable.' });
+  }
   const message = `❤️ DATE CONFIRMED ❤️\n\nSHE SAID YES! 🥳\n\nDate: ${details.date}\nTime: ${details.time}\nLocation: ${details.location}\nDate Type: ${details.dateType}\nMood: ${details.mood || 'Not specified'}\nMessage: ${details.note || 'No message'}\nStatus: CONFIRMED ❤️\nTimestamp: ${details.timestamp}`;
   let delivered = false;
 
@@ -60,6 +84,19 @@ app.post('/api/date-confirmation', async (req, res) => {
   }
 
   res.json({ ok: true, delivered });
+});
+
+app.get('/api/date-responses', async (req, res) => {
+  if (!process.env.ADMIN_TOKEN || req.get('x-admin-token') !== process.env.ADMIN_TOKEN) return res.status(401).json({ ok: false, message: 'Unauthorized.' });
+  if (!pool) return res.status(503).json({ ok: false, message: 'Response storage is not configured yet.' });
+  try {
+    await databaseReady;
+    const result = await pool.query('SELECT id, date_value AS date, time_value AS time, location, date_type AS "dateType", mood, note, guest_email AS "guestEmail", guest_phone AS "guestPhone", created_at AS timestamp FROM date_responses ORDER BY created_at DESC');
+    res.json({ ok: true, responses: result.rows });
+  } catch (error) {
+    console.error('Response lookup failed:', error.message);
+    res.status(500).json({ ok: false, message: 'Could not load responses.' });
+  }
 });
 
 app.listen(port, () => console.log(`Date invitation API listening on http://localhost:${port}`));

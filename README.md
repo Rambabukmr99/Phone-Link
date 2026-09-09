@@ -10,7 +10,17 @@ A romantic, playful date invitation with a no-pressure interaction and a server-
 4. Run `npm run dev`.
 5. Open `http://localhost:5173`.
 
-The frontend works without notification credentials. Confirmations still finish gracefully; the backend logs delivery errors without exposing them to the guest.
+For response storage, create a free Neon PostgreSQL database and put its connection string in `.env` as `DATABASE_URL`. Run `node server.js`, then run the frontend with `VITE_API_URL=http://localhost:8787`. A booking is confirmed only after the backend inserts it into PostgreSQL.
+
+## Free deployment
+
+1. Create a free PostgreSQL project at [Neon](https://neon.tech) and copy its pooled connection string into `DATABASE_URL`.
+2. Create a free Web Service at [Render](https://render.com) from this repository. Build command: `npm install`; start command: `node server.js`.
+3. Add `DATABASE_URL`, `DATABASE_SSL=true`, `ADMIN_TOKEN` (a long random value), and `FRONTEND_ORIGIN=https://rambabukmr99.github.io` to Render environment variables.
+4. After Render gives you a URL, add a GitHub Pages repository variable named `VITE_API_URL` with that URL, then rerun the Pages workflow. The frontend will submit bookings to Render.
+5. To view responses, send a request to `https://your-render-url.onrender.com/api/date-responses` with the header `x-admin-token: your-ADMIN_TOKEN`. Keep this URL and token private.
+
+Render's free service can sleep when unused; the first request may take a little longer. Neon may also suspend inactive free projects. Neither requires a paid plan.
 
 ## WhatsApp Business Cloud API
 
@@ -18,7 +28,7 @@ Create a Meta WhatsApp Business app, create a permanent access token, and set `W
 
 ## Email
 
-The static GitHub Pages version uses FormSubmit for email, so no backend is needed for email. It sends the full card to `ramcomp3099@mail.com` and CCs her consented email. On the first submission, FormSubmit sends an activation email to `ramcomp3099@mail.com`; click that activation link once. The sender address is managed by FormSubmit rather than your Gmail account. For private SMTP delivery from `javadeveloper765497@gmail.com`, deploy `server.js` instead and configure the SMTP variables below. Never put an account password in GitHub or the frontend.
+Email and WhatsApp remain optional. The response is stored in PostgreSQL even when those notification providers are not configured. If you later enable SMTP or WhatsApp on Render, those credentials stay server-side.
 
 ## Photos
 

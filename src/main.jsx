@@ -62,12 +62,9 @@ function App() {
     setSubmitting(true);
     setSubmitError('');
     try {
-      const payload = new URLSearchParams({ _subject: "❤️ IT'S A DATE! SHE SAID YES! 🥳", _cc: details.herEmail, _replyto: details.herEmail, _template: 'table', _captcha: 'false', date: formatDate(details.date), time: formatTime(details.time), location: details.location, vibe: details.vibes.join(' · '), mood: details.mood, message: details.message || 'No message', confirmed: 'YES ❤️', guest_phone: details.herPhone, timestamp: new Date().toISOString() });
-      const response = await fetch('https://formsubmit.co/ajax/ramcomp3099@mail.com', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' }, body: payload });
-      const responseText = await response.text();
-      let result = {};
-      try { result = JSON.parse(responseText); } catch { result = { success: response.ok }; }
-      if (!response.ok || (result.ok === false || result.success === false)) throw new Error(result.message || 'Confirmation failed');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/date-confirmation`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...details, dateType: details.vibes.join(', ') }) });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || 'Confirmation failed');
       setSent(Boolean(result.delivered));
       setStep('balloons');
       setTimeout(() => setStep('final'), 5200);
