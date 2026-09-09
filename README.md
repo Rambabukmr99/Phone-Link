@@ -18,7 +18,7 @@ Create a Meta WhatsApp Business app, create a permanent access token, and set `W
 
 ## Email
 
-Set SMTP credentials in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) plus `NOTIFICATION_EMAIL`. Gmail requires an app password when two-factor authentication is enabled. Any SMTP provider can be used.
+Set SMTP credentials in `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) plus `NOTIFICATION_EMAIL`. The template uses `javadeveloper765497@gmail.com` as the sender and `ramcomp3099@mail.com` as your recipient. Her consented email, entered during booking, is added as the second recipient. Gmail requires an app password; never put the account password in GitHub or the frontend. Any SMTP provider can be used.
 
 ## Photos
 
