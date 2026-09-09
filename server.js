@@ -10,10 +10,12 @@ const submissions = new Map();
 const rawDatabaseUrl = process.env.DATABASE_URL?.trim();
 let pool = null;
 let databaseConfigError = '';
+let databaseHost = '';
 
 if (rawDatabaseUrl) {
   try {
     const databaseUrl = new URL(rawDatabaseUrl);
+    databaseHost = databaseUrl.hostname;
     const sslMode = databaseUrl.searchParams.get('sslmode');
     if (sslMode === 'require' || sslMode === 'prefer' || sslMode === 'verify-ca') databaseUrl.searchParams.set('sslmode', 'verify-full');
     if (!databaseUrl.hostname || databaseUrl.hostname === 'base') throw new Error('DATABASE_URL contains an invalid database hostname. Copy the complete Neon connection string from Connect.');
@@ -28,14 +30,15 @@ app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: '10kb' }));
 
 app.get('/health', async (_req, res) => {
-  if (!pool) return res.status(503).json({ ok: false, service: 'date-invitation-api', database: databaseConfigError || 'not configured' });
+  const diagnostics = { service: 'date-invitation-api', databaseHost: databaseHost || 'missing', smtpConfigured: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.NOTIFICATION_EMAIL) };
+  if (!pool) return res.status(503).json({ ok: false, database: databaseConfigError || 'not configured', ...diagnostics });
   try {
     await databaseReady;
     await pool.query('SELECT 1');
-    res.json({ ok: true, service: 'date-invitation-api', database: 'connected' });
+    res.json({ ok: true, database: 'connected', ...diagnostics });
   } catch (error) {
     console.error('Health database check failed:', error.message);
-    res.status(503).json({ ok: false, service: 'date-invitation-api', database: 'unavailable' });
+    res.status(503).json({ ok: false, database: 'unavailable', ...diagnostics });
   }
 });
 
