@@ -12,7 +12,17 @@ const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: '10kb' }));
 
-app.get('/health', (_req, res) => res.json({ ok: true, service: 'date-invitation-api' }));
+app.get('/health', async (_req, res) => {
+  if (!pool) return res.status(503).json({ ok: false, service: 'date-invitation-api', database: 'not configured' });
+  try {
+    await databaseReady;
+    await pool.query('SELECT 1');
+    res.json({ ok: true, service: 'date-invitation-api', database: 'connected' });
+  } catch (error) {
+    console.error('Health database check failed:', error.message);
+    res.status(503).json({ ok: false, service: 'date-invitation-api', database: 'unavailable' });
+  }
+});
 
 const databaseReady = pool?.query(`CREATE TABLE IF NOT EXISTS date_responses (
   id BIGSERIAL PRIMARY KEY,
@@ -38,8 +48,6 @@ app.post('/api/date-confirmation', async (req, res) => {
   const lastSubmission = submissions.get(ip) || 0;
   if (Date.now() - lastSubmission < 30_000) return res.status(429).json({ ok: false, message: 'Please wait a moment.' });
   if (!valid(req.body)) return res.status(400).json({ ok: false, message: 'A few date details are missing.' });
-  submissions.set(ip, Date.now());
-
   const details = {
     date: clean(req.body.date),
     time: clean(req.body.time),
@@ -57,8 +65,9 @@ app.post('/api/date-confirmation', async (req, res) => {
     await pool.query('INSERT INTO date_responses (date_value, time_value, location, date_type, mood, note, guest_email, guest_phone, consent) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [details.date, details.time, details.location, details.dateType, details.mood || null, details.note || null, details.herEmail, details.herPhone, req.body.consent]);
   } catch (error) {
     console.error('Response storage failed:', error.message);
-    return res.status(503).json({ ok: false, message: 'Response storage is temporarily unavailable.' });
+    return res.status(503).json({ ok: false, message: 'Response storage is temporarily unavailable. Check the Render DATABASE_URL and service logs.' });
   }
+  submissions.set(ip, Date.now());
   const message = `❤️ DATE CONFIRMED ❤️\n\nSHE SAID YES! 🥳\n\nDate: ${details.date}\nTime: ${details.time}\nLocation: ${details.location}\nDate Type: ${details.dateType}\nMood: ${details.mood || 'Not specified'}\nMessage: ${details.note || 'No message'}\nStatus: CONFIRMED ❤️\nTimestamp: ${details.timestamp}`;
   let delivered = false;
 
