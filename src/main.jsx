@@ -64,11 +64,11 @@ function App() {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8787'}/api/date-confirmation`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...details, dateType: details.vibes.join(', ') }) });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || 'Confirmation failed');
+      if (!response.ok || !result.ok) throw new Error(result.message || 'The response service rejected the booking.');
       setSent(Boolean(result.delivered));
       setStep('balloons');
       setTimeout(() => setStep('final'), 5200);
-    } catch { setSubmitError('Email was not accepted. Please activate FormSubmit from the first email sent to ramcomp3099@mail.com, then try again.'); } finally { setSubmitting(false); }
+    } catch (error) { console.error('Date confirmation failed:', error); setSubmitError(error.message || 'The response service is unavailable. Please try again.'); } finally { setSubmitting(false); }
   };
   const next = (nextStep, key) => details[key] && setStep(nextStep);
   const openSecret = () => { setSecret(true); setSecretTimerKey(Date.now()); };
