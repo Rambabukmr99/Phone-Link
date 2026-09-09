@@ -101,11 +101,15 @@ app.post('/api/date-confirmation', async (req, res) => {
       delivered = responses.every((response) => response.ok);
     }
 
-    if (process.env.SMTP_HOST && process.env.NOTIFICATION_EMAIL) {
-      const transporter = nodemailer.createTransport({ host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_SECURE === 'true', auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } });
-      const emailRecipients = [...new Set([process.env.NOTIFICATION_EMAIL, details.herEmail])];
-      const cardRows = [['DATE', details.date], ['TIME', details.time], ['LOCATION', details.location], ['VIBE', details.dateType], ['MOOD', details.mood || 'Not specified'], ['NOTE', details.note || 'No message']].map(([label, value]) => `<tr><td style="padding:12px;border-bottom:1px solid #e4d8d2;color:#a85d55;font:11px monospace;letter-spacing:1px">${label}</td><td style="padding:12px;border-bottom:1px solid #e4d8d2;color:#342a2d;font:16px Georgia,serif">${value}</td></tr>`).join('');
-      const html = `<div style="max-width:560px;padding:28px;background:#fff8f2;color:#342a2d;font-family:Arial,sans-serif"><p style="color:#a85d55;letter-spacing:2px;font-size:11px">❤️ DATE CONFIRMED ❤️</p><h1 style="font:normal 32px Georgia,serif">It’s officially a date.</h1><p>Congratulations! Your date has officially been confirmed. 😌❤️</p><table style="width:100%;border-collapse:collapse;margin-top:24px;background:#fff">${cardRows}</table><p style="font-size:12px;color:#7b6c70;margin-top:22px">CONFIRMED ❤️ · ${details.timestamp}</p></div>`;
+    const emailRecipients = [...new Set([process.env.NOTIFICATION_EMAIL, details.herEmail].filter(Boolean))];
+    const cardRows = [['DATE', details.date], ['TIME', details.time], ['LOCATION', details.location], ['VIBE', details.dateType], ['MOOD', details.mood || 'Not specified'], ['NOTE', details.note || 'No message']].map(([label, value]) => `<tr><td style="padding:12px;border-bottom:1px solid #e4d8d2;color:#a85d55;font:11px monospace;letter-spacing:1px">${label}</td><td style="padding:12px;border-bottom:1px solid #e4d8d2;color:#342a2d;font:16px Georgia,serif">${value}</td></tr>`).join('');
+    const html = `<div style="max-width:560px;padding:28px;background:#fff8f2;color:#342a2d;font-family:Arial,sans-serif"><p style="color:#a85d55;letter-spacing:2px;font-size:11px">❤️ DATE CONFIRMED ❤️</p><h1 style="font:normal 32px Georgia,serif">It’s officially a date.</h1><p>Congratulations! Your date has officially been confirmed. 😌❤️</p><table style="width:100%;border-collapse:collapse;margin-top:24px;background:#fff">${cardRows}</table><p style="font-size:12px;color:#7b6c70;margin-top:22px">CONFIRMED ❤️ · ${details.timestamp}</p></div>`;
+    if (process.env.RESEND_API_KEY && process.env.RESEND_FROM && emailRecipients.length) {
+      const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: process.env.RESEND_FROM, to: emailRecipients, subject: "❤️ IT'S A DATE! SHE SAID YES! 🥳", text: message, html }) });
+      if (!response.ok) throw new Error(`Resend returned ${response.status}`);
+      delivered = true;
+    } else if (process.env.SMTP_HOST && process.env.NOTIFICATION_EMAIL) {
+      const transporter = nodemailer.createTransport({ host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_SECURE === 'true', connectionTimeout: 10000, auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } });
       await transporter.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to: emailRecipients, subject: "❤️ IT'S A DATE! SHE SAID YES! 🥳", text: message, html });
       delivered = true;
     }
