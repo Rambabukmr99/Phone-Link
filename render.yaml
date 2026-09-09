@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: date-with-me-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: FRONTEND_ORIGIN
+        value: https://rambabukmr99.github.io

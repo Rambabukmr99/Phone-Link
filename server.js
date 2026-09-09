@@ -12,6 +12,8 @@ const pool = process.env.DATABASE_URL ? new pg.Pool({ connectionString: process.
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: '10kb' }));
 
+app.get('/health', (_req, res) => res.json({ ok: true, service: 'date-invitation-api' }));
+
 const databaseReady = pool?.query(`CREATE TABLE IF NOT EXISTS date_responses (
   id BIGSERIAL PRIMARY KEY,
   date_value DATE NOT NULL,

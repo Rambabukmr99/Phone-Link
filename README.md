@@ -14,10 +14,10 @@ For response storage, create a free Neon PostgreSQL database and put its connect
 
 ## Free deployment
 
-1. Create a free PostgreSQL project at [Neon](https://neon.tech) and copy its pooled connection string into `DATABASE_URL`.
-2. Create a free Web Service at [Render](https://render.com) from this repository. Build command: `npm install`; start command: `node server.js`.
-3. Add `DATABASE_URL`, `DATABASE_SSL=true`, `ADMIN_TOKEN` (a long random value), and `FRONTEND_ORIGIN=https://rambabukmr99.github.io` to Render environment variables.
-4. After Render gives you a URL, add a GitHub Pages repository variable named `VITE_API_URL` with that URL, then rerun the Pages workflow. The frontend will submit bookings to Render.
+1. Create a free PostgreSQL project at [Neon](https://neon.tech) and copy its pooled connection string.
+2. In [Render](https://render.com), select **New → Blueprint**, choose this repository, and deploy `render.yaml`. Paste the Neon connection string when Render asks for `DATABASE_URL`. Render generates `ADMIN_TOKEN` automatically.
+3. Open the deployed API URL and verify `https://your-render-url.onrender.com/health` returns `{ "ok": true }`.
+4. In GitHub, open **Settings → Secrets and variables → Actions → Variables → New repository variable**. Add `VITE_API_URL` with the Render API URL, then rerun the Pages workflow.
 5. To view responses, send a request to `https://your-render-url.onrender.com/api/date-responses` with the header `x-admin-token: your-ADMIN_TOKEN`. Keep this URL and token private.
 
 Render's free service can sleep when unused; the first request may take a little longer. Neon may also suspend inactive free projects. Neither requires a paid plan.
