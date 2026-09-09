@@ -87,10 +87,11 @@ app.post('/api/date-confirmation', async (req, res) => {
   }
   submissions.set(ip, Date.now());
   const message = `❤️ DATE CONFIRMED ❤️\n\nSHE SAID YES! 🥳\n\nDate: ${details.date}\nTime: ${details.time}\nLocation: ${details.location}\nDate Type: ${details.dateType}\nMood: ${details.mood || 'Not specified'}\nMessage: ${details.note || 'No message'}\nStatus: CONFIRMED ❤️\nTimestamp: ${details.timestamp}`;
+  res.json({ ok: true, stored: true });
   let delivered = false;
 
   try {
-    if (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_NUMBER) {
+    if (process.env.ENABLE_WHATSAPP === 'true' && process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_NUMBER) {
       const recipients = [...new Set([process.env.WHATSAPP_NUMBER, details.herPhone.replace(/[^+\d]/g, '')])];
       const responses = await Promise.all(recipients.map((recipient) => fetch(`https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
         method: 'POST',
@@ -112,7 +113,6 @@ app.post('/api/date-confirmation', async (req, res) => {
     console.error('Notification delivery failed:', error.message);
   }
 
-  res.json({ ok: true, delivered });
 });
 
 app.get('/api/date-responses', async (req, res) => {
