@@ -14,7 +14,7 @@ The frontend works without notification credentials. Confirmations still finish 
 
 ## WhatsApp Business Cloud API
 
-Create a Meta WhatsApp Business app, create a permanent access token, and set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and `WHATSAPP_NUMBER` in `.env`. The number must include the country code and no `+` or spaces. The backend sends a text message through the Graph API; credentials never enter the browser.
+Create a Meta WhatsApp Business app, create a permanent access token, and set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and `WHATSAPP_NUMBER` in `.env`. The destination number is prefilled as `8340563402` in `.env.example`; confirm the country code format required by your WhatsApp Business account. The backend sends the complete date card as a text message through the Graph API; credentials never enter the browser.
 
 ## Email
 
